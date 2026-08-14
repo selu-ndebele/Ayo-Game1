@@ -166,7 +166,7 @@
     house2.classList.toggle('active', state.turn===2 && !state.gameOver);
     if(!state.gameOver){
       if(state.turn===1){
-        turnArrowEl.textContent = "Player 1's turn — pick a pit on your row";
+        turnArrowEl.textContent = "Player 1's turn: pick a pit on your row";
       } else {
         turnArrowEl.textContent = state.mode==='pvc' ? "Computer is thinking…" : "Player 2's turn: pick a pit on your row";
       }
@@ -316,7 +316,7 @@
       text = `Game over — a rare tie, ${state.score1}–${state.score2}.`;
       state.streak1 = 0; state.streak2 = 0; state.lastWinner = null;
     } else {
-      text = `Game over — ${nameOf(winner)} wins ${winner===1?state.score1:state.score2}–${winner===1?state.score2:state.score1}.`;
+      text = `Game over: ${nameOf(winner)} wins ${winner===1?state.score1:state.score2}-${winner===1?state.score2:state.score1}.`;
       if(state.lastWinner === winner){
         if(winner===1) state.streak1++; else state.streak2++;
       } else {
