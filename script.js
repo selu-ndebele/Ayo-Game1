@@ -168,7 +168,7 @@
       if(state.turn===1){
         turnArrowEl.textContent = "Player 1's turn — pick a pit on your row";
       } else {
-        turnArrowEl.textContent = state.mode==='pvc' ? "Computer is thinking…" : "Player 2's turn — pick a pit on your row";
+        turnArrowEl.textContent = state.mode==='pvc' ? "Computer is thinking…" : "Player 2's turn: pick a pit on your row";
       }
     } else {
       turnArrowEl.textContent = '';
@@ -227,7 +227,7 @@
     if(sumPits(opp) === 0){
       if(!simMoveFeeds(state.pits, idx)){
         if(legalMoveExistsThatFeeds(state.turn)){
-          setMessage("Your opponent has no seeds — you must play a pit that reaches their row.", 'warn');
+          setMessage("Your opponent has no seeds: you must play a pit that reaches their row.", 'warn');
           return;
         }
       }
@@ -326,7 +326,7 @@
       state.lastWinner = winner;
       if((winner===1 && state.streak1>=3) || (winner===2 && state.streak2>=3)){
         state.champion = winner;
-        text += ` ${nameOf(winner)} takes three straight wins — Champion!`;
+        text += ` ${nameOf(winner)} takes three straight wins: Champion!`;
       }
     }
     setMessage(text, 'win');
