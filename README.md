@@ -1,4 +1,4 @@
-# Ayo Heritage Game — Enhanced Build
+# Ayo Heritage Game - Enhanced Build
 
 Ayo (Ayoayo) is a traditional Yoruba sowing game in the wider African mancala family. This build combines game play with heritage learning, realistic seed presentation and browser-to-browser multiplayer.
 
