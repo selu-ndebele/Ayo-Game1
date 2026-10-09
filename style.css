@@ -492,3 +492,85 @@ button.primary:hover{ background:var(--brass-light); }
   .online-heading{ flex-direction:column; }
   .seed-choice{ font-size:10px; }
 }
+.hidden {
+  display: none !important;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+/* History Modal Backdrop & Main Card Styling */
+#historyModal .modal-card {
+  background: #2a1a08 !important; /* Deep carved wood background */
+  color: #f5e6d3 !important; /* Warm ivory for general body text */
+  border: 2px solid #b8860b !important; /* Gold trim border */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* History Grid Item Cards */
+#historyModal .modal-body > div,
+#historyModal .history-card,
+#historyModal .history-grid > div {
+  background-color: #3b2612 !important; /* Slightly lighter pit-wood tone */
+  border: 1px solid #7a4f1d !important; /* Warm brown border */
+  border-radius: 10px;
+  padding: 16px;
+}
+
+/* History Card Titles & Accent Subtitles */
+#historyModal h2,
+#historyModal h3,
+#historyModal h4,
+#historyModal .history-card h3 {
+  color: #f39c12 !important; /* Bright warm gold matching active game highlights */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Subtitle Header / Tagline Text (e.g. LEARN • PRESERVE • PLAY) */
+#historyModal .history-subtitle,
+#historyModal .modal-header span,
+#historyModal small {
+  color: #d4af37 !important; /* Metallic gold accent */
+  letter-spacing: 2px;
+}
+
+/* Paragraph Description Text inside Cards */
+#historyModal p,
+#historyModal span {
+  color: #e8d8c8 !important; /* High-contrast light cream text */
+  line-height: 1.6;
+}
+
+/* Close Button Styling */
+#historyModal .modal-header button,
+#historyModal .close-btn,
+#historyModal .modal-card .secondary {
+  background: #4a2e16 !important;
+  color: #f39c12 !important;
+  border: 1px solid #b8860b !important;
+  border-radius: 50%;
+  transition: all 0.2s ease-in-out;
+}
+
+#historyModal .modal-header button:hover {
+  background: #b8860b !important;
+  color: #1a0f05 !important;
+}
