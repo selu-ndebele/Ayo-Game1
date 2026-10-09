@@ -1,39 +1,67 @@
-# Ayo-Game1
+# Ayo Heritage Game — Enhanced Build
 
-Ayo (pronounce aah-yoh) is a traditional game played by the Yoruba people who reside in South Western Nigeria. Known as the "Game of the Intellectual", this game requires a lot of mathematical skill. Ayo is played in with carved wooden box, containing twelve holes (with six holes on each side), and 48 Ayo seeds (four seeds in each hole). 
+Ayo (Ayoayo) is a traditional Yoruba sowing game in the wider African mancala family. This build combines game play with heritage learning, realistic seed presentation and browser-to-browser multiplayer.
 
-+HOW TO PLAY+
+## New features in this version
 
-This two player game runs counter-clockwise. Players can only pick up seeds from their side of the board, unless they are “capturing” seeds from the opponent’s side of the board. The objective is to “capture” all your opponent’s seeds.
+### 1. Game History / Heritage Learning
+- “Learn the History of Ayo” is available from the main menu.
+- “Game History” remains available while playing.
+- The history panel explains origins, the traditional board, social learning, community value, preservation challenges and digital heritage.
+- It also notes that Ayo has living regional/community variations rather than claiming one digital ruleset is the only traditional form.
 
-Step 1-
+### 2. More realistic seeds + multiple seed selection
+Players can select one or several visual seed sets:
+- Ayo Brown
+- Ivory Cowrie
+- Ebony
+- Red Bean
+- Speckled
 
-The first player begins by picking up all of the seeds from one of their holes, and running them counter-clockwise.
+When multiple sets are selected, pits display a repeatable natural-looking mixture. Seed shapes use varied gradients, highlights, seams, speckles, rotations and small offsets to look less procedural.
 
-Step 2-
+### 3. Same-Wi-Fi online multiplayer
+The new “Play Online · Same Wi-Fi” mode uses WebRTC DataChannels.
 
-The opponent does the same, starting from their side.
+How to connect:
+1. Put both computers/phones on the same Wi-Fi or LAN.
+2. Player 1 chooses **Host Game** and clicks **Create Invitation**.
+3. Copy the invitation code to Player 2 (message, QR transfer, etc.).
+4. Player 2 chooses **Join Game**, pastes the invitation and clicks **Create Answer**.
+5. Player 2 sends the answer code back to Player 1.
+6. Player 1 pastes the answer and clicks **Connect to Player 2**.
+7. The game opens automatically once the direct WebRTC data channel connects.
 
-Step 3-
+This implementation deliberately uses `iceServers: []`, so it does not depend on a cloud relay. It is intended for devices that can reach one another on the same local network. Some managed/public Wi-Fi networks enable client isolation and may block device-to-device WebRTC traffic.
 
-If the seed movement ends in a hole with four Ayo seeds on the opponent’s side, the player “captures” those seeds.
+For deployment, serve the project over `http://localhost` during local development or HTTPS on a hosted site. Modern browsers may restrict WebRTC or clipboard functionality for plain HTTP pages opened from another machine.
 
-Step 4-
+## Existing play modes
+- Local friend vs friend
+- Player vs computer
+- Same-Wi-Fi browser-to-browser online play
 
-When this happens, they win one “house” and remove the seeds from the game.
+## Rules implemented in this build
+- 12 pits, 6 per player, starting with 4 seeds in each pit (48 seeds total).
+- Counter-clockwise sowing.
+- Capturing occurs on the opponent's row when the last seed creates a pit containing 2, 3 or 4 seeds; eligible preceding opponent pits can chain-capture.
+- Feeding rule is enforced when an opponent row is empty.
+- Three consecutive match wins creates a Champion.
 
-Step 5-
+## Run locally
+Because this is a static web project, use any small local web server. For example, with Python installed:
 
-The opponent must always choose their move to bring one or more seeds into the other’s row.
+```bash
+python -m http.server 8080
+```
 
-Step 6-
+Then open:
 
-Players take turns until the seeds are exhausted.
+```text
+http://localhost:8080
+```
 
-Step 7-
+For Wi-Fi play on two devices, serve the files from the host machine and open the host machine's LAN address from the second device (subject to browser secure-context restrictions), or deploy the static site over HTTPS.
 
-If a player records three straight wins, they become a champion (ota). The loser (ope) quits, and a new player then takes over.
-
-Have fun playing Ayo!
-
-https://culturedays.ca/en/events/cbb4b7e3-a8b6-489a-8953-f79a31cb28d9
+## Heritage source used for the new learning panel
+The supplied Historical Nigeria article, “Ayo: The Nigerian Board Game That Ruled Homes Before Smartphones” (19 May 2026), plus the original project README.

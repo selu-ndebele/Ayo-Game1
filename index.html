@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ayo - Zululand games</title>
+<title>Ayo - African Heritage Game</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -11,8 +11,8 @@
 <body>
 
 <div class="header">
-  <div class="eyebrow">Yoruba · Ogbon Onigbowo</div>
-  <h1>Ayo - African game</h1>
+  <div class="eyebrow">Yoruba · Ayoayo · Heritage Game</div>
+  <h1>Ayo - Yoruba · Ayoayo</h1>
   <div class="subtitle">the game of the intellectual</div>
 </div>
 
@@ -21,10 +21,63 @@
   <div class="menu-buttons">
     <button id="pvpBtn" class="primary big">Play vs Friend</button>
     <button id="pvcBtn" class="primary big">Play vs Computer</button>
+    <button id="onlineBtn" class="primary big">Play Online · Same Wi-Fi</button>
+    <button id="historyMenuBtn" class="big">Learn the History of Ayo</button>
+  </div>
+
+  <div class="seed-customizer compact-panel">
+    <div>
+      <strong>Choose your seed set</strong>
+      <p>Select one or several styles. When several are selected the board uses a natural-looking mix.</p>
+    </div>
+    <div class="seed-options" id="seedOptionsMenu"></div>
   </div>
 </div>
 
+<div id="onlineSetup" class="menu-screen hidden">
+  <div class="online-heading">
+    <div>
+      <p class="menu-copy">Same Wi-Fi multiplayer</p>
+      <p class="helper">Both devices should be connected to the same Wi-Fi/LAN. Exchange the connection codes below once, then moves are sent directly browser-to-browser.</p>
+    </div>
+    <span id="onlineStatus" class="status-pill">Not connected</span>
+  </div>
+
+  <div class="online-tabs">
+    <button id="hostTabBtn" class="primary">Host Game · Player 1</button>
+    <button id="joinTabBtn">Join Game · Player 2</button>
+  </div>
+
+  <div id="hostPanel" class="online-panel">
+    <h3>Host</h3>
+    <p>1. Create an invitation and send it to Player 2.</p>
+    <button id="createOfferBtn" class="primary">Create Invitation</button>
+    <textarea id="hostOffer" readonly placeholder="Your invitation code will appear here"></textarea>
+    <button class="copy-btn" data-copy="hostOffer">Copy Invitation</button>
+    <p>2. Player 2 sends an answer back. Paste it here.</p>
+    <textarea id="hostAnswerInput" placeholder="Paste Player 2's answer code"></textarea>
+    <button id="acceptAnswerBtn" class="primary">Connect to Player 2</button>
+  </div>
+
+  <div id="joinPanel" class="online-panel hidden">
+    <h3>Join</h3>
+    <p>1. Paste the host invitation.</p>
+    <textarea id="guestOfferInput" placeholder="Paste Player 1's invitation code"></textarea>
+    <button id="createAnswerBtn" class="primary">Create Answer</button>
+    <p>2. Send this answer back to Player 1.</p>
+    <textarea id="guestAnswer" readonly placeholder="Your answer code will appear here"></textarea>
+    <button class="copy-btn" data-copy="guestAnswer">Copy Answer</button>
+  </div>
+
+  <button id="onlineBackBtn">Back</button>
+</div>
+
 <div id="gameScreen" class="hidden">
+
+  <div id="networkBar" class="network-bar hidden">
+    <span id="networkRole">Online</span>
+    <span id="networkState" class="status-pill">Connected</span>
+  </div>
 
   <div class="match-bar">
     <div class="streak" title="Player 1 win streak">
@@ -60,10 +113,18 @@
   <div class="turn-arrow" id="turnArrow">Player 1's turn: pick a pit on your row</div>
   <div class="message-bar" id="message"></div>
 
+  <div class="game-tools">
+    <div class="seed-customizer compact-panel in-game">
+      <strong>Seed appearance</strong>
+      <div class="seed-options" id="seedOptionsGame"></div>
+    </div>
+  </div>
+
   <div class="buttons">
     <button class="primary" id="newGameBtn">New Game</button>
     <button id="newMatchBtn">New Match</button>
     <button id="rulesBtn">How this game works</button>
+    <button id="historyBtn">Game History</button>
     <button id="menuBtn">Change Mode</button>
   </div>
 
@@ -79,6 +140,44 @@
     </ul>
   </div>
 
+</div>
+
+<div id="historyModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+  <div class="modal-card history-card">
+    <button id="closeHistoryBtn" class="modal-close" aria-label="Close history">×</button>
+    <div class="eyebrow">Learn · Preserve · Play</div>
+    <h2 id="historyTitle">The History of Ayo</h2>
+    <div class="history-grid">
+      <section>
+        <h3>Origins</h3>
+        <p><b>Ayo</b>, commonly called <b>Ayoayo</b> among the Yoruba, belongs to the wider African <b>mancala family</b> of sowing games. It became deeply rooted in Yoruba communities, especially in southwestern Nigeria.</p>
+      </section>
+      <section>
+        <h3>The traditional board</h3>
+        <p>A typical Ayo board has <b>two rows of six pits</b>. Players traditionally use seeds, stones or cowries, sowing the pieces around the board while planning captures and anticipating the opponent's next moves.</p>
+      </section>
+      <section>
+        <h3>How people learned</h3>
+        <p>The game was often learned socially: children watched older relatives and community players, then joined when they understood the patterns. Some boards were carved from wood, while informal games could be played in holes made in the ground.</p>
+      </section>
+      <section>
+        <h3>More than entertainment</h3>
+        <p>Ayo encouraged face-to-face interaction, patience, observation, arithmetic thinking and strategy. Evening games could attract family, neighbours and spectators who discussed moves and challenged skilled players.</p>
+      </section>
+      <section>
+        <h3>Why preservation matters</h3>
+        <p>As television, video games, smartphones, urban lifestyles and imported entertainment became more common, some traditional play declined. Much knowledge was passed orally, so local rule variations were not always formally documented.</p>
+      </section>
+      <section>
+        <h3>Ayo in the digital age</h3>
+        <p>Digital versions can help younger generations encounter the game again. This project keeps the strategic board game playable while also presenting its cultural story, so the technology becomes a tool for preservation rather than replacement.</p>
+      </section>
+    </div>
+    <div class="history-note">
+      <strong>Heritage note:</strong> Ayo has regional and community variations. This game documents one playable ruleset while recognising that living traditions may be taught differently by different communities.
+    </div>
+    <p class="history-source">Current history text is based on the supplied Historical Nigeria article and the project's existing README source material.</p>
+  </div>
 </div>
 
 <script src="script.js"></script>
