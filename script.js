@@ -7,14 +7,12 @@
     { id:'red', label:'Red Bean', className:'seed-red' },
     { id:'speckled', label:'Speckled', className:'seed-speckled' }
   ];
-
   const AI_LEVELS = [
     { id:'easy', label:'Easy' },
     { id:'medium', label:'Medium' },
     { id:'hard', label:'Hard' },
     { id:'expert', label:'Expert' }
   ];
-
   const TUTORIAL_STEPS = [
     {
       title: "1. The Board & Setup",
@@ -93,6 +91,11 @@
   function sumPits(player){ return pitsOf(player).reduce((s,i)=> s + state.pits[i], 0); }
   function sumOf(pits, player){ return pitsOf(player).reduce((s,i)=> s + pits[i], 0); }
 
+  function isGameInProgress(){
+    if(state.gameOver || !state.mode) return false;
+    return state.score1 > 0 || state.score2 > 0 || state.pits.some(count => count !== 4);
+  }
+
   function simMoveFeeds(pits, idx){
     const player = owner(idx);
     const opp = opponentOf(player);
@@ -145,12 +148,10 @@
     const player = 2;
     const legal = legalMovesFor(state.pits, player);
     if(legal.length === 0) return null;
-
     if(state.aiLevel === 'easy') return aiMoveEasy(legal, player);
     if(state.aiLevel === 'medium') return aiMoveMedium(legal, player);
     if(state.aiLevel === 'hard') return aiMoveHard(legal, player);
     if(state.aiLevel === 'expert') return aiMoveExpert(legal, player);
-
     return legal[Math.floor(Math.random() * legal.length)];
   }
 
@@ -185,14 +186,11 @@
     const opp = 1;
     let bestMove = legal[0];
     let bestScore = -Infinity;
-
     for(let idx of legal){
       const afterAI = state.pits.slice();
       const { captured: aiCap } = simApplyMove(afterAI, idx, player);
-
       let oppMinNext = Infinity;
       const oppLegal = legalMovesFor(afterAI, opp);
-
       if(oppLegal.length === 0){
         oppMinNext = 0;
       } else {
@@ -209,7 +207,6 @@
           if(evalVal < oppMinNext) oppMinNext = evalVal;
         }
       }
-
       const netScore = (aiCap * 2.5) - oppMinNext + (sumOf(afterAI, player) * 0.2);
       if(netScore > bestScore){
         bestScore = netScore;
@@ -223,26 +220,21 @@
     const opp = 1;
     let bestMove = legal[0];
     let bestVal = -Infinity;
-
     for(let idx of legal){
       const boardCopy = state.pits.slice();
       const { captured } = simApplyMove(boardCopy, idx, player);
-
       let vulnerablePits = 0;
       pitsOf(player).forEach(p => {
         if(boardCopy[p] === 1 || boardCopy[p] === 2) vulnerablePits++;
       });
-
       let oppBestResponse = 0;
       legalMovesFor(boardCopy, opp).forEach(oi => {
         const respCopy = boardCopy.slice();
         const res = simApplyMove(respCopy, oi, opp);
         if(res.captured > oppBestResponse) oppBestResponse = res.captured;
       });
-
       const positionControl = sumOf(boardCopy, player) - sumOf(boardCopy, opp);
       const score = (captured * 3.5) - (oppBestResponse * 2.2) + (positionControl * 0.4) - (vulnerablePits * 0.5);
-
       if(score > bestVal){
         bestVal = score;
         bestMove = idx;
@@ -252,6 +244,7 @@
   }
 
   const pitEls = {};
+
   function buildBoard(){
     const rowTop = $('rowTop');
     const rowBottom = $('rowBottom');
@@ -266,6 +259,7 @@
     const el = document.createElement('div');
     el.className = 'pit owner' + owner(idx);
     el.dataset.idx = idx;
+    
     const idxLabel = document.createElement('div');
     idxLabel.className = 'idx';
     idxLabel.textContent = idx+1;
@@ -275,6 +269,10 @@
     seeds.className = 'seeds';
     el.appendChild(seeds);
 
+    const countBadge = document.createElement('div');
+    countBadge.className = 'pit-count-badge';
+    el.appendChild(countBadge);
+
     el.addEventListener('click', ()=> handlePitClick(idx));
     pitEls[idx] = el;
     return el;
@@ -283,13 +281,21 @@
   function renderSeeds(idx){
     const el = pitEls[idx];
     if(!el) return;
+    
     const seedsWrap = el.querySelector('.seeds');
     seedsWrap.innerHTML = '';
+    
     const actualSeeds = state.pitSeeds[idx] || [];
     const count = actualSeeds.length;
+    
+    const countBadge = el.querySelector('.pit-count-badge');
+    if(countBadge){
+      countBadge.textContent = count;
+      countBadge.style.display = count > 0 ? 'block' : 'none';
+    }
+
     const maxShown = 12;
     const shown = Math.min(count, maxShown);
-
     for(let i=0;i<shown;i++){
       const seedObj = actualSeeds[i];
       const s = document.createElement('div');
@@ -302,7 +308,6 @@
       s.title = seedObj.label;
       seedsWrap.appendChild(s);
     }
-
     if(count > maxShown){
       const overflow = document.createElement('div');
       overflow.className = 'seed-overflow';
@@ -318,12 +323,12 @@
   }
 
   function renderAll(){
+    buildSeedSelectors();
     for(let i=0;i<12;i++){ renderSeeds(i); updatePitSelectable(i); }
     if($('score1'))$('score1').textContent = state.score1;
     if($('score2'))$('score2').textContent = state.score2;
     if($('house1'))$('house1').classList.toggle('active', state.turn===1 && !state.gameOver);
     if($('house2'))$('house2').classList.toggle('active', state.turn===2 && !state.gameOver);
-
     const turnArrowEl = $('turnArrow');
     if(turnArrowEl){
       if(!state.gameOver){
@@ -331,8 +336,8 @@
           turnArrowEl.textContent = `Computer (${state.aiLevel}) is thinking...`;
         } else if(state.mode==='online'){
           turnArrowEl.textContent = state.turn===state.localPlayer
-            ? `Your turn — Player ${state.localPlayer}: pick a pit on your row`
-            : `Player ${state.turn}'s turn — waiting for your opponent`;
+            ? `Your turn Player ${state.localPlayer}: pick a pit on your row`
+            : `Player ${state.turn}'s turn waiting for your opponent`;
         } else {
           turnArrowEl.textContent = `Player ${state.turn}'s turn: pick a pit on your row`;
         }
@@ -379,7 +384,7 @@
   function delay(ms){ return new Promise(res=>setTimeout(res, ms)); }
   function legalMoveExistsThatFeeds(player){ return legalMovesFor(state.pits, player).some(i => simMoveFeeds(state.pits, i)); }
 
-  // ---------------- Audio System ----------------
+  // Audio System
   let audioContext = null;
   function prepareAudio(){
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -395,17 +400,13 @@
     const now = audioContext.currentTime;
     const osc = audioContext.createOscillator();
     const gain = audioContext.createGain();
-    
     osc.type = 'sine';
     osc.frequency.setValueAtTime(420, now);
     osc.frequency.exponentialRampToValueAtTime(140, now + 0.06);
-
     gain.gain.setValueAtTime(0.2, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-
     osc.connect(gain);
     gain.connect(audioContext.destination);
-
     osc.start(now);
     osc.stop(now + 0.07);
   }
@@ -416,17 +417,13 @@
     const volume = Math.min(0.25, 0.10 + seedCount * 0.02);
     const osc = audioContext.createOscillator();
     const gain = audioContext.createGain();
-
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(320, now);
     osc.frequency.exponentialRampToValueAtTime(110, now + 0.18);
-
     gain.gain.setValueAtTime(volume, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-
     osc.connect(gain);
     gain.connect(audioContext.destination);
-
     osc.start(now);
     osc.stop(now + 0.19);
   }
@@ -441,13 +438,11 @@
     }
     if(owner(idx) !== state.turn){ setMessage("That pit isn't on your row.", 'warn'); return; }
     if(state.pits[idx] === 0){ setMessage('That pit is empty.', 'warn'); return; }
-
     const opp = opponentOf(state.turn);
     if(sumPits(opp) === 0 && !simMoveFeeds(state.pits, idx) && legalMoveExistsThatFeeds(state.turn)){
       setMessage('Your opponent has no seeds: you must play a pit that reaches their row.', 'warn');
       return;
     }
-
     prepareAudio();
     if(state.mode==='online' && !applyingRemote) sendNetwork({ type:'move', idx });
     await performMove(idx);
@@ -457,68 +452,52 @@
     const player = state.turn;
     const pName = playerName(player);
     setMessage(`${pName} played pit ${idx + 1}`);
-
     state.sowing = true;
     renderAll();
-
     const handSeeds = state.pitSeeds[idx].splice(0);
     state.pits[idx] = 0;
     renderSeeds(idx);
     let cur = idx;
-
     const moveStepDelay = (state.mode === 'pvc' && player === 2) ? 350 : 220;
-
     while(handSeeds.length > 0){
       await delay(moveStepDelay);
       cur = (cur + 1) % 12;
-      
       const seedToPlace = handSeeds.pop();
       state.pitSeeds[cur].push(seedToPlace);
       state.pits[cur] = state.pitSeeds[cur].length;
-      
       renderSeeds(cur);
       playSeedSound();
-
       if(pitEls[cur]) pitEls[cur].classList.add('landing');
       if(handSeeds.length !== 0 && pitEls[cur]) pitEls[cur].classList.remove('landing');
     }
-
     const lastIdx = cur;
     const opponent = opponentOf(player);
     let captured = 0;
     const isCapturable = (v) => v === 2 || v === 3 || v === 4;
-
     if(owner(lastIdx) === opponent && isCapturable(state.pits[lastIdx])){
       await delay(250);
       let chainIdx = lastIdx;
       while(chainIdx >= 0 && owner(chainIdx) === opponent && isCapturable(state.pits[chainIdx])){
         if(pitEls[chainIdx]) pitEls[chainIdx].classList.add('capturing');
         playCaptureSound(state.pits[chainIdx]);
-        
         captured += state.pits[chainIdx];
         await delay(300);
-        
         state.pitSeeds[chainIdx] = [];
         state.pits[chainIdx] = 0;
-        
         renderSeeds(chainIdx);
         if(pitEls[chainIdx]) pitEls[chainIdx].classList.remove('capturing');
         chainIdx--;
       }
     }
-
     if(pitEls[lastIdx]) pitEls[lastIdx].classList.remove('landing');
-
     if(captured > 0){
       if(player === 1) state.score1 += captured; else state.score2 += captured;
       setMessage(`${pName} captured ${captured} seed${captured > 1 ? 's' : ''}!`);
       renderAll();
       await delay(400);
     }
-
     const p1Sum = sumPits(1);
     const p2Sum = sumPits(2);
-
     if(p1Sum === 0 || p2Sum === 0){
       if(p1Sum > 0){ 
         state.score1 += p1Sum; 
@@ -533,10 +512,8 @@
     } else {
       state.turn = opponentOf(player);
     }
-
     state.sowing = false;
     renderAll();
-
     if(!state.gameOver && state.mode==='pvc' && state.turn===2){
       await delay(900);
       const aiIdx = aiChooseMove();
@@ -548,7 +525,7 @@
     const winner = state.score1 > state.score2 ? 1 : (state.score2 > state.score1 ? 2 : 0);
     let text;
     if(winner === 0){
-      text = `Game over — a tie, ${state.score1}–${state.score2}.`;
+      text = `Game over – a tie, ${state.score1}–${state.score2}.`;
       state.streak1 = 0; state.streak2 = 0; state.lastWinner = null;
     } else {
       text = `Game over: ${playerName(winner)} wins ${winner===1?state.score1:state.score2}-${winner===1?state.score2:state.score1}.`;
@@ -606,15 +583,12 @@
     state.mode = mode;
     state.onlineRole = null;
     state.localPlayer = null;
-    
-    if($('house2Label'))$('house2Label').textContent = mode==='pvc' ? `Computer (${state.aiLevel})` : 'Ilé P2';
+    if($('house2Label'))$('house2Label').textContent = mode==='pvc' ? `Computer (${state.aiLevel})` : 'Il P2';
     if($('menuScreen'))$('menuScreen').classList.add('hidden');
     if($('onlineSetup'))$('onlineSetup').classList.add('hidden');
     if($('gameScreen'))$('gameScreen').classList.remove('hidden');
     if($('networkBar'))$('networkBar').classList.add('hidden');
-    
     renderDifficultyUI();
-
     state.streak1 = 0;
     state.streak2 = 0;
     state.lastWinner = null;
@@ -631,12 +605,10 @@
       const tools = document.querySelector('.game-tools');
       if(tools) tools.appendChild(container);
     }
-
     if(state.mode !== 'pvc'){
       container.classList.add('hidden');
       return;
     }
-
     container.classList.remove('hidden');
     container.innerHTML = `
       <strong>Computer Difficulty</strong>
@@ -649,7 +621,6 @@
         `).join('')}
       </div>
     `;
-
     container.querySelectorAll('input[name="aiLevelChoice"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         state.aiLevel = e.target.value;
@@ -660,7 +631,7 @@
     });
   }
 
-  // ---------------- Tutorial System ----------------
+  // Tutorial System
   function openTutorial(){
     let tutorialModal = $('tutorialModal');
     if(!tutorialModal){
@@ -669,7 +640,6 @@
       tutorialModal.className = 'modal hidden';
       document.body.appendChild(tutorialModal);
     }
-
     state.tutorialStep = 0;
     renderTutorialStep();
     tutorialModal.classList.remove('hidden');
@@ -681,7 +651,6 @@
     const stepData = TUTORIAL_STEPS[state.tutorialStep];
     const isFirst = state.tutorialStep === 0;
     const isLast = state.tutorialStep === TUTORIAL_STEPS.length - 1;
-
     modal.innerHTML = `
       <div class="modal-card">
         <div class="modal-header">
@@ -698,7 +667,6 @@
         </div>
       </div>
     `;
-
     safeAddListener('closeTutorialBtn', 'click', closeTutorial);
     safeAddListener('prevTutBtn', 'click', () => {
       if(state.tutorialStep > 0){ state.tutorialStep--; renderTutorialStep(); }
@@ -713,7 +681,7 @@
     if(modal) modal.classList.add('hidden');
   }
 
-  // ---------------- Short-Code Wi-Fi Room System ----------------
+  // Room Code Wi-Fi System
   function generate6CharRoomCode(){
     const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = 'AYO-';
@@ -729,13 +697,10 @@
     state.roomCode = code;
     state.onlineRole = 'host';
     state.localPlayer = 1;
-
     const hostField = $('hostOffer') || $('roomCodeOutput');
     if(hostField) hostField.value = code;
-
     const onlineStatus = $('onlineStatus');
     if(onlineStatus) onlineStatus.textContent = `Room Code: ${code} (Waiting for Player 2...)`;
-
     if(typeof Peer !== 'undefined'){
       peer = new Peer(code);
       peer.on('connection', (c) => {
@@ -752,19 +717,15 @@
     closePeer();
     const inputField = $('guestOfferInput') || $('roomCodeInput');
     const enteredCode = inputField ? inputField.value.trim().toUpperCase() : '';
-
     if(!enteredCode || enteredCode.length < 4 || enteredCode.length > 10){
-      alert('Please enter a 5-10 character room code.');
+      alert('Please enter a valid room code.');
       return;
     }
-
     state.roomCode = enteredCode;
     state.onlineRole = 'guest';
     state.localPlayer = 2;
-
     const onlineStatus = $('onlineStatus');
     if(onlineStatus) onlineStatus.textContent = `Connecting to ${enteredCode}...`;
-
     if(typeof Peer !== 'undefined'){
       peer = new Peer();
       peer.on('open', () => {
@@ -861,15 +822,13 @@
     state.mode = 'online';
     state.onlineRole = role;
     state.localPlayer = role==='host' ? 1 : 2;
-    
-    if($('house2Label'))$('house2Label').textContent = 'Ilé P2';
+    if($('house2Label'))$('house2Label').textContent = 'Il P2';
     if($('menuScreen'))$('menuScreen').classList.add('hidden');
     if($('onlineSetup'))$('onlineSetup').classList.add('hidden');
     if($('gameScreen'))$('gameScreen').classList.remove('hidden');
     if($('networkBar'))$('networkBar').classList.remove('hidden');
-    if($('networkRole'))$('networkRole').textContent = role==='host' ? `Online — Player 1 (Room: ${state.roomCode})` : `Online — Player 2 (Room: ${state.roomCode})`;
+    if($('networkRole'))$('networkRole').textContent = role==='host' ? `Online Player 1 (Room: ${state.roomCode})` : `Online Player 2 (Room: ${state.roomCode})`;
     if($('networkState'))$('networkState').textContent = 'Connected';
-    
     renderDifficultyUI();
     state.streak1 = 0;
     state.streak2 = 0;
@@ -891,24 +850,34 @@
   }
 
   function buildSeedSelectors(){
+    const inProgress = isGameInProgress();
     ['seedOptionsMenu','seedOptionsGame'].forEach(containerId => {
       const container = $(containerId);
       if(!container) return;
       container.innerHTML = '';
       SEED_STYLES.forEach(def => {
         const label = document.createElement('label');
-        label.className = 'seed-choice';
+        label.className = `seed-choice ${inProgress ? 'disabled' : ''}`;
+        
         const input = document.createElement('input');
         input.type = 'checkbox';
         input.value = def.id;
         input.checked = state.selectedSeeds.includes(def.id);
-        input.addEventListener('change', () => updateSeedSelection(def.id, input.checked));
+        input.disabled = inProgress;
+        
+        input.addEventListener('change', () => {
+          if(isGameInProgress()){
+            setMessage('Cannot change seed styles during an active game.', 'warn');
+            input.checked = !input.checked;
+            return;
+          }
+          updateSeedSelection(def.id, input.checked);
+        });
 
         const sample = document.createElement('span');
         sample.className = `seed sample-seed ${def.className}`;
         const text = document.createElement('span');
         text.textContent = def.label;
-
         label.append(input, sample, text);
         container.appendChild(label);
       });
@@ -916,6 +885,10 @@
   }
 
   function updateSeedSelection(id, checked){
+    if(isGameInProgress()){
+      setMessage('Cannot change seed appearance mid-game.', 'warn');
+      return;
+    }
     const next = new Set(state.selectedSeeds);
     if(checked) next.add(id); else next.delete(id);
     if(next.size===0){
@@ -974,26 +947,23 @@
   safeAddListener('joinTabBtn', 'click', showJoinTab);
   safeAddListener('createOfferBtn', 'click', createHostRoom);
   safeAddListener('createAnswerBtn', 'click', joinHostRoom);
-
   document.querySelectorAll('.copy-btn').forEach(btn => btn.addEventListener('click', ()=>copyField(btn.dataset.copy, btn)));
   safeAddListener('menuBtn', 'click', backToMenu);
   safeAddListener('newGameBtn', 'click', ()=>newGame(false));
   safeAddListener('newMatchBtn', 'click', ()=>newMatch(false));
   safeAddListener('rulesBtn', 'click', openTutorial);
-  
+
   // History Modal Event Listeners
   safeAddListener('historyBtn', 'click', openHistory);
   safeAddListener('historyMenuBtn', 'click', openHistory);
   safeAddListener('closeHistoryBtn', 'click', closeHistory);
+  if($('historyModal')){$('historyModal').addEventListener('click', (e)=>{ if(e.target.id==='historyModal') closeHistory(); });}
 
-  if($('historyModal')){$('historyModal').addEventListener('click', (e)=>{ if(e.target.id==='historyModal') closeHistory(); });
-  }
-  
   document.addEventListener('keydown', (e)=>{ 
     if(e.key==='Escape'){
       closeHistory();
       closeTutorial();
-    } 
+    }
   });
 
   buildSeedSelectors();
